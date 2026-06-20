@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Health Scorecard — Vivian Fix Lab</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f0eeea;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1a1917;
+    --text2: #5a5855;
+    --text3: #9a9895;
+    --brand: #1D9E75;
+    --brand-dark: #0F6E56;
+    --brand-light: #E1F5EE;
+    --danger: #993C1D;
+    --danger-light: #FAECE7;
+    --warn: #85500B;
+    --warn-light: #FAEEDA;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14140f;
+      --surface: #1e1e1a;
+      --surface2: #28281f;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #f0eeea;
+      --text2: #a0a09a;
+      --text3: #606060;
+      --brand-light: #083d2e;
+      --danger-light: #3d1a0a;
+      --warn-light: #3a2005;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .wrap { max-width: 600px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--brand); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .brand-mark i { color: #fff; font-size: 16px; }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--text3); }
+
+  /* INTRO SCREEN */
+  .intro-title { font-size: 26px; font-weight: 600; line-height: 1.25; margin-bottom: 12px; }
+  .intro-sub { font-size: 15px; color: var(--text2); margin-bottom: 24px; line-height: 1.65; }
+  .intro-points { margin-bottom: 28px; }
+  .intro-point { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; font-size: 14px; color: var(--text2); }
+  .intro-point i { color: var(--brand); font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+
+  /* QUIZ */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .progress-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--brand); border-radius: 99px; transition: width 0.3s; }
+  .progress-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+
+  .q-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 16px; }
+  .q-cat { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand-dark); margin-bottom: 8px; }
+  .q-text { font-size: 17px; font-weight: 600; margin-bottom: 18px; line-height: 1.45; }
+
+  .opt-row { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn { text-align: left; padding: 13px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--surface); font-size: 14px; cursor: pointer; transition: all 0.15s; color: var(--text); font-family: inherit; }
+  .opt-btn:hover { background: var(--surface2); border-color: var(--border-strong); }
+  .opt-btn.selected { border-color: var(--brand); background: var(--brand-light); color: var(--brand-dark); font-weight: 500; }
+
+  .btn-row { display: flex; justify-content: space-between; gap: 10px; }
+  .btn { padding: 12px 22px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; transition: background 0.15s; }
+  .btn:hover { background: var(--surface2); }
+  .btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); margin-left: auto; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* EMAIL GATE */
+  .gate-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 28px 24px; text-align: center; }
+  .gate-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--brand-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .gate-icon i { color: var(--brand-dark); font-size: 24px; }
+  .gate-title { font-size: 19px; font-weight: 600; margin-bottom: 8px; }
+  .gate-sub { font-size: 14px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+  .gate-form input { width: 100%; padding: 13px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-size: 14px; font-family: inherit; margin-bottom: 12px; background: var(--surface); color: var(--text); }
+  .gate-form input:focus { outline: none; border-color: var(--brand); }
+  .gate-form .btn-primary { width: 100%; margin-left: 0; padding: 14px; }
+  .gate-note { font-size: 12px; color: var(--text3); margin-top: 12px; }
+
+  /* RESULTS */
+  .score-hero { text-align: center; padding: 10px 0 24px; }
+  .score-num { font-size: 56px; font-weight: 700; }
+  .score-max { font-size: 22px; color: var(--text3); font-weight: 500; }
+  .score-sub { font-size: 14px; color: var(--text2); margin-top: 6px; font-weight: 500; }
+
+  .cat-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .cat-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .cat-bar-row:last-child { margin-bottom: 0; }
+  .cat-name { font-size: 13px; width: 170px; flex-shrink: 0; color: var(--text2); }
+  .cat-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .cat-fill { height: 100%; border-radius: 99px; }
+  .cat-pct { font-size: 13px; width: 38px; text-align: right; font-weight: 500; }
+
+  .weak-card { border-left: 3px solid var(--danger); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 16px; margin-bottom: 10px; background: var(--danger-light); }
+  .weak-title { font-size: 14px; font-weight: 600; color: var(--danger); margin-bottom: 4px; }
+  .weak-desc { font-size: 13px; color: var(--text2); line-height: 1.55; }
+
+  .cta-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 24px; margin-top: 20px; text-align: center; }
+  .cta-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .cta-desc { font-size: 14px; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+  .cta-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .cta-buttons a { text-decoration: none; }
+
+  .retake-row { text-align: center; margin-top: 16px; }
+  .retake-row button { background: none; border: none; color: var(--text3); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand-row">
+    <div class="brand-mark"><i class="ti ti-mail-check"></i></div>
+    <div>
+      <div class="brand-name">Vivian Fix Lab</div>
+      <div class="brand-sub">Email Health Scorecard</div>
+    </div>
+  </div>
+
+  <div id="screen-intro">
+    <div class="intro-title">Is your email actually working — or just sitting there?</div>
+    <div class="intro-sub">Take this 2-minute scorecard to find out if your email or signature has hidden problems most people never check for.</div>
+    <div class="intro-points">
+      <div class="intro-point"><i class="ti ti-circle-check" aria-hidden="true"></i><span>8 quick questions, no technical knowledge needed</span></div>
+      <div class="intro-point"><i class="ti ti-circle-check" aria-hidden="true"></i><span>Get a personalized score across 5 key risk areas</span></div>
+      <div class="intro-point"><i class="ti ti-circle-check" aria-hidden="true"></i><span>See exactly what to fix first</span></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:14px;margin-left:0;" onclick="startQuiz()">Start the scorecard <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+
+  <div id="screen-quiz" class="hidden"></div>
+
+  <div id="screen-gate" class="hidden">
+    <div class="gate-card">
+      <div class="gate-icon"><i class="ti ti-chart-bar"></i></div>
+      <div class="gate-title">Your score is ready</div>
+      <div class="gate-sub">Enter your details to see your full results, including your weakest areas and what's likely costing you the most.</div>
+      <div class="gate-form">
+        <input type="text" id="gate-name" placeholder="First name" autocomplete="given-name">
+        <input type="email" id="gate-email" placeholder="Email address" autocomplete="email">
+        <button class="btn btn-primary" onclick="submitGate()">Show my results <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      </div>
+      <div class="gate-note">No spam, ever. Just your results and the occasional email fix tip.</div>
+    </div>
+  </div>
+
+  <div id="screen-results" class="hidden"></div>
+
+</div>
+
+<script>
+var QUESTIONS = [
+  {cat:"Rendering Reliability", text:"Have you ever opened your own email or signature in Outlook to see how it actually looks?", opts:[
+    {label:"Yes, and it looked fine", score:3},
+    {label:"Yes, and something looked off", score:1},
+    {label:"No, I've never checked", score:0}
+  ]},
+  {cat:"Rendering Reliability", text:"Does your email use a simple, boxy layout, or something more design-heavy with overlapping elements?", opts:[
+    {label:"Simple and boxy", score:3},
+    {label:"Fairly design-heavy", score:1},
+    {label:"Not sure", score:1}
+  ]},
+  {cat:"Dark Mode Safety", text:"If someone's phone is set to dark mode, do you know what your logo looks like to them?", opts:[
+    {label:"Yes, I've checked", score:3},
+    {label:"No, never checked", score:0},
+    {label:"My logo has a transparent background", score:1}
+  ]},
+  {cat:"Deliverability & Spam Risk", text:"Is your email mostly one big image, or a mix of real text and images?", opts:[
+    {label:"Mostly real text", score:3},
+    {label:"Roughly half and half", score:2},
+    {label:"Mostly one big image", score:0}
+  ]},
+  {cat:"Deliverability & Spam Risk", text:"Have you ever had an email you sent end up in someone's spam folder?", opts:[
+    {label:"Not that I know of", score:3},
+    {label:"Yes, it's happened", score:0},
+    {label:"I don't actually know", score:1}
+  ]},
+  {cat:"Mobile Responsiveness", text:"When you open your own email on your phone, does everything look properly sized?", opts:[
+    {label:"Yes, looks great", score:3},
+    {label:"It's a bit squished or tiny", score:1},
+    {label:"I've never checked on my phone", score:0}
+  ]},
+  {cat:"Professionalism & Branding", text:"Does every link in your email or signature actually work when you click it?", opts:[
+    {label:"Yes, tested and working", score:3},
+    {label:"Some, but not all tested", score:1},
+    {label:"Not sure / never tested", score:0}
+  ]},
+  {cat:"Professionalism & Branding", text:"Is your email signature using one consistent font and size throughout?", opts:[
+    {label:"Yes, fully consistent", score:3},
+    {label:"Mostly, with a few odd spots", score:1},
+    {label:"Honestly, it's a mix", score:0}
+  ]}
+];
+
+var CAT_META = {
+  "Rendering Reliability": {fix:"Your layout may be breaking apart in Outlook, the trickiest email client to design for — this is the single most common email complaint I see."},
+  "Dark Mode Safety": {fix:"Your logo or text could be vanishing for anyone using dark mode. This is invisible to you unless you check it directly."},
+  "Deliverability & Spam Risk": {fix:"Image-heavy emails with little real text are a common, often invisible reason messages land in spam instead of the inbox."},
+  "Mobile Responsiveness": {fix:"Most people read email on their phone first. A squished or tiny layout loses trust in the first two seconds."},
+  "Professionalism & Branding": {fix:"Broken links or inconsistent fonts quietly undercut how professional and trustworthy you look, even if the content is great."}
+};
+
+var answers = {};
+var current = 0;
+var userScore = 0;
+var userResultsHtml = "";
+
+function startQuiz(){
+  document.getElementById('screen-intro').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  var q = QUESTIONS[current];
+  var pct = Math.round((current/QUESTIONS.length)*100);
+  var html = '<div class="progress-wrap"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label">'+(current+1)+' / '+QUESTIONS.length+'</div></div>';
+  html += '<div class="q-card"><div class="q-cat">'+q.cat+'</div><div class="q-text">'+q.text+'</div><div class="opt-row">';
+  q.opts.forEach(function(o, i){
+    var sel = answers[current] === i ? ' selected' : '';
+    html += '<button class="opt-btn'+sel+'" onclick="selectOpt('+i+')">'+o.label+'</button>';
+  });
+  html += '</div></div>';
+  html += '<div class="btn-row">';
+  html += (current > 0) ? '<button class="btn" onclick="prevQ()">Back</button>' : '<span></span>';
+  if(answers[current] !== undefined){
+    if(current === QUESTIONS.length - 1){
+      html += '<button class="btn btn-primary" onclick="finishQuiz()">See my score</button>';
+    } else {
+      html += '<button class="btn btn-primary" onclick="nextQ()">Next</button>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('screen-quiz').innerHTML = html;
+}
+
+function selectOpt(i){ answers[current] = i; renderQuestion(); }
+function nextQ(){ current++; renderQuestion(); }
+function prevQ(){ current--; renderQuestion(); }
+
+function finishQuiz(){
+  buildResults();
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-gate').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function buildResults(){
+  var catTotals = {}, catCounts = {};
+  QUESTIONS.forEach(function(q, idx){
+    if(!catTotals[q.cat]){ catTotals[q.cat]=0; catCounts[q.cat]=0; }
+    var score = q.opts[answers[idx]].score;
+    catTotals[q.cat] += score;
+    catCounts[q.cat] += 3;
+  });
+
+  var totalScore = 0, totalMax = 0;
+  Object.keys(catTotals).forEach(function(c){ totalScore += catTotals[c]; totalMax += catCounts[c]; });
+  var overallPct = Math.round((totalScore/totalMax)*100);
+  userScore = overallPct;
+
+  var scoreColor = overallPct >= 80 ? 'var(--brand-dark)' : overallPct >= 50 ? 'var(--warn)' : 'var(--danger)';
+  var scoreLabel = overallPct >= 80 ? 'Strong — just minor polish needed' : overallPct >= 50 ? 'At risk — a few real issues to fix' : 'Needs attention — multiple issues likely';
+
+  var html = '<div class="score-hero"><div class="score-num" style="color:'+scoreColor+'">'+overallPct+'<span class="score-max">/100</span></div><div class="score-sub">'+scoreLabel+'</div></div>';
+
+  html += '<div class="cat-section">';
+  var sorted = Object.keys(catTotals).sort(function(a,b){ return (catTotals[a]/catCounts[a]) - (catTotals[b]/catCounts[b]); });
+  sorted.forEach(function(c){
+    var pct = Math.round((catTotals[c]/catCounts[c])*100);
+    var barColor = pct >= 80 ? 'var(--brand)' : pct >= 50 ? '#d4920a' : 'var(--danger)';
+    html += '<div class="cat-bar-row"><div class="cat-name">'+c+'</div><div class="cat-track"><div class="cat-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div><div class="cat-pct" style="color:'+barColor+'">'+pct+'%</div></div>';
+  });
+  html += '</div>';
+
+  var weakest = sorted.slice(0,2);
+  weakest.forEach(function(c){
+    html += '<div class="weak-card"><div class="weak-title">'+c+'</div><div class="weak-desc">'+CAT_META[c].fix+'</div></div>';
+  });
+
+  html += '<div class="cta-card">';
+  html += '<div class="cta-title">Want this fixed before it costs you a client?</div>';
+  html += '<div class="cta-desc">Book a free 15-minute audit call. I\'ll walk through your exact results, show you what\'s breaking, and tell you exactly how to fix it.</div>';
+  html += '<div class="cta-buttons">';
+  html += '<a href="https://calendly.com/vantageserv1/new-meeting" target="_blank"><button class="btn btn-primary" style="margin-left:0;width:100%;">Book my free audit call <i class="ti ti-arrow-right" aria-hidden="true"></i></button></a>';
+  html += '</div></div>';
+
+  html += '<div class="retake-row"><button onclick="restart()">Retake the quiz</button></div>';
+
+  userResultsHtml = html;
+}
+
+function submitGate(){
+  var name = document.getElementById('gate-name').value.trim();
+  var email = document.getElementById('gate-email').value.trim();
+  if(!email || !email.includes('@')){
+    document.getElementById('gate-email').style.borderColor = 'var(--danger)';
+    return;
+  }
+
+  var KLAVIYO_PUBLIC_KEY = 'XPDB2y';
+  var KLAVIYO_LIST_ID = 'VwXFnP';
+
+  var payload = {
+    data: {
+      type: 'subscription',
+      attributes: {
+        profile: {
+          data: {
+            type: 'profile',
+            attributes: {
+              email: email,
+              first_name: name
+            }
+          }
+        }
+      },
+      relationships: {
+        list: {
+          data: { type: 'list', id: KLAVIYO_LIST_ID }
+        }
+      }
+    }
+  };
+
+  fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'revision': '2024-10-15'
+    },
+    body: JSON.stringify(payload)
+  }).catch(function(err){
+    console.log('Klaviyo submission error (results still shown):', err);
+  });
+
+  document.getElementById('screen-gate').classList.add('hidden');
+  document.getElementById('screen-results').classList.remove('hidden');
+  document.getElementById('screen-results').innerHTML = userResultsHtml;
+  window.scrollTo(0,0);
+}
+
+function restart(){
+  answers = {};
+  current = 0;
+  document.getElementById('gate-name').value = '';
+  document.getElementById('gate-email').value = '';
+  document.getElementById('screen-results').classList.add('hidden');
+  document.getElementById('screen-intro').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
